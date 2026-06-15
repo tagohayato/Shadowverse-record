@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shadowverse 対戦記録</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#f5f5f3" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="SV記録" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f3;
+      color: #1a1a1a;
+      min-height: 100vh;
+      padding: 1.5rem 1rem;
+    }
+
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding-bottom: 80px;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+      color: #1a1a1a;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 1.2rem;
+      flex-wrap: wrap;
+    }
+
+    .breadcrumb strong {
+      color: #1a1a1a;
+      font-weight: 500;
+    }
+
+    .breadcrumb .sep {
+      opacity: .4;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      color: #888;
+      padding: 4px 8px;
+      border-radius: 8px;
+    }
+
+    .back-btn:hover {
+      background: #eee;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: .3rem;
+    }
+
+    .section-sub {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 1rem;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+
+    .format-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 1rem;
+      max-width: 400px;
+    }
+
+    .sel-card {
+      background: #fff;
+      border: 0.5px solid rgba(0, 0, 0, 0.12);
+      border-radius: 12px;
+      padding: .9rem 1rem;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+
+    .sel-card:hover {
+      border-color: rgba(0, 0, 0, 0.35);
+      background: #fafafa;
+    }
+
+    .sel-card .card-name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .sel-card .card-sub {
+      font-size: 11px;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    .format-card {
+      background: #fff;
+      border: 0.5px solid rgba(0, 0, 0, 0.12);
+      border-radius: 14px;
+      padding: 1.4rem 1rem;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      text-align: center;
+    }
+
+    .format-card:hover {
+      border-color: rgba(0, 0, 0, 0.35);
+      background: #fafafa;
+    }
+
+    .format-card .fmt-icon {
+      font-size: 28px;
+      margin-bottom: .5rem;
+    }
+
+    .format-card .fmt-name {
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .format-card .fmt-sub {
+      font-size: 11px;
+      color: #888;
+      margin-top: 3px;
+    }
+
+    .format-card.rotation {
+      border-color: rgba(59, 130, 246, 0.3);
+      background: #f0f6ff;
+    }
+
+    .format-card.rotation:hover {
+      border-color: rgba(59, 130, 246, 0.6);
+      background: #e6f0ff;
+    }
+
+    .format-card.unlimited {
+      border-color: rgba(168, 85, 247, 0.3);
+      background: #faf0ff;
+    }
+
+    .format-card.unlimited:hover {
+      border-color: rgba(168, 85, 247, 0.6);
+      background: #f3e8ff;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 7px;
+      flex-shrink: 0;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+      gap: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .stat {
+      background: #ebebea;
+      border-radius: 8px;
+      padding: .6rem .8rem;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 3px;
+    }
+
+    .stat-val {
+      font-size: 20px;
+      font-weight: 500;
+    }
+
+    .stat-val.win {
+      color: #1D9E75;
+    }
+
+    .stat-val.lose {
+      color: #E24B4A;
+    }
+
+    .tbl-wrap {
+      background: #fff;
+      border: 0.5px solid rgba(0, 0, 0, 0.12);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      table-layout: fixed;
+    }
+
+    th {
+      text-align: left;
+      padding: 6px 8px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #888;
+      border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+    }
+
+    td {
+      padding: 7px 8px;
+      border-bottom: 0.5px solid rgba(0, 0, 0, 0.07);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: #fafafa;
+    }
+
+    tr.selected td {
+      background: #fff5f5;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 9px;
+      border-radius: 99px;
+    }
+
+    .badge.win {
+      background: #E1F5EE;
+      color: #0F6E56;
+    }
+
+    .badge.lose {
+      background: #FCEBEB;
+      color: #A32D2D;
+    }
+
+    .del-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #aaa;
+      font-size: 13px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .del-btn:hover {
+      background: #FCEBEB;
+      color: #A32D2D;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 2rem;
+      color: #aaa;
+      font-size: 13px;
+    }
+
+    .cur-env-badge {
+      display: inline-block;
+      font-size: 10px;
+      background: #E6F1FB;
+      color: #0C447C;
+      padding: 2px 10px;
+      border-radius: 99px;
+      margin-bottom: .5rem;
+      font-weight: 500;
+    }
+
+    .sub-section-title {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: .6rem;
+      color: #1a1a1a;
+    }
+
+    .winbar-wrap {
+      height: 6px;
+      background: #f0ebe8;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .winbar {
+      height: 100%;
+      background: #1D9E75;
+      border-radius: 99px;
+    }
+
+    .pie-container {
+      background: #fff;
+      border: 0.5px solid rgba(0, 0, 0, 0.12);
+      border-radius: 12px;
+      padding: 1.2rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .pie-wrap {
+      flex-shrink: 0;
+    }
+
+    .legend {
+      flex: 1;
+      min-width: 160px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .legend-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .legend-label {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .legend-pct {
+      font-weight: 500;
+      color: #1a1a1a;
+      white-space: nowrap;
+    }
+
+    .legend-count {
+      color: #aaa;
+      white-space: nowrap;
+      font-size: 11px;
+    }
+
+    .rec-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: .6rem;
+      flex-wrap: wrap;
+    }
+
+    .rec-toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .btn-edit {
+      background: none;
+      border: 0.5px solid rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      font-size: 12px;
+      color: #888;
+      padding: 5px 12px;
+      cursor: pointer;
+    }
+
+    .btn-edit:hover {
+      background: #eee;
+    }
+
+    .btn-edit.active {
+      background: #FCEBEB;
+      color: #A32D2D;
+      border-color: rgba(220, 50, 50, 0.3);
+    }
+
+    .btn-del-all {
+      background: #E24B4A;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      padding: 5px 14px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-del-all:hover {
+      background: #c73c3c;
+    }
+
+    .btn-del-all:disabled {
+      background: #ddd;
+      color: #aaa;
+      cursor: default;
+    }
+
+    .sel-count {
+      font-size: 12px;
+      color: #E24B4A;
+      font-weight: 500;
+    }
+
+    .btn-sel-all {
+      background: none;
+      border: none;
+      font-size: 12px;
+      color: #888;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+    }
+
+    .btn-sel-all:hover {
+      color: #1a1a1a;
+    }
+
+    input[type=checkbox] {
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+      accent-color: #E24B4A;
+    }
+
+    /* ダークモード */
+    body.dark {
+      background: #1a1a1a;
+      color: #e8e8e8;
+    }
+
+    body.dark h1 {
+      color: #e8e8e8;
+    }
+
+    body.dark .sel-card {
+      background: #2a2a2a;
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    body.dark .sel-card:hover {
+      background: #333;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    body.dark .sel-card .card-sub {
+      color: #888;
+    }
+
+    body.dark .format-card {
+      background: #2a2a2a;
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    body.dark .format-card.rotation {
+      background: #1e2a3a;
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    body.dark .format-card.unlimited {
+      background: #2a1e3a;
+      border-color: rgba(168, 85, 247, 0.3);
+    }
+
+    body.dark .stat {
+      background: #2a2a2a;
+    }
+
+    body.dark .stat-label {
+      color: #888;
+    }
+
+    body.dark .stat-val {
+      color: #e8e8e8;
+    }
+
+    body.dark .tbl-wrap {
+      background: #2a2a2a;
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    body.dark th {
+      color: #888;
+      border-bottom-color: rgba(255, 255, 255, 0.08);
+    }
+
+    body.dark td {
+      border-bottom-color: rgba(255, 255, 255, 0.06);
+    }
+
+    body.dark tr:hover td {
+      background: #333;
+    }
+
+    body.dark tr.selected td {
+      background: #3a2020;
+    }
+
+    body.dark .back-btn {
+      color: #888;
+    }
+
+    body.dark .back-btn:hover {
+      background: #333;
+    }
+
+    body.dark .breadcrumb strong {
+      color: #e8e8e8;
+    }
+
+    body.dark .section-sub {
+      color: #888;
+    }
+
+    body.dark .sub-section-title {
+      color: #e8e8e8;
+    }
+
+    body.dark .pie-container {
+      background: #2a2a2a;
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    body.dark .legend-pct {
+      color: #e8e8e8;
+    }
+
+    body.dark .winbar-wrap {
+      background: #3a3a3a;
+    }
+
+    body.dark .btn-edit {
+      color: #aaa;
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    body.dark .btn-edit:hover {
+      background: #333;
+    }
+
+    body.dark .empty {
+      color: #666;
+    }
+
+    body.dark .del-btn {
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Shadowverse 対戦記録</h1>
+
+    <!-- フォーマット選択 -->
+    <div id="p-format" class="page active">
+      <div class="section-title">フォーマットを選択</div>
+      <div class="section-sub">プレイするフォーマットを選んでください</div>
+      <div class="format-grid">
+        <div class="format-card rotation" id="card-rotation">
+          <div class="fmt-icon">🔄</div>
+          <div class="fmt-name">ローテーション</div>
+          <div class="fmt-sub">使用可能カードに制限あり</div>
+        </div>
+        <div class="format-card unlimited" id="card-unlimited">
+          <div class="fmt-icon">♾️</div>
+          <div class="fmt-name">アンリミテッド</div>
+          <div class="fmt-sub">全カード使用可能</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 環境選択 -->
+    <div id="p-env" class="page">
+      <div class="breadcrumb">
+        <button class="back-btn" id="back-to-format">← 戻る</button>
+        <span class="sep">/</span><strong id="bc-fmt"></strong>
+      </div>
+      <div class="section-title">環境を選択</div>
+      <div class="section-sub">記録する環境（弾）を選んでください</div>
+      <div class="card-grid" id="env-list"></div>
+    </div>
+
+    <!-- クラス選択 -->
+    <div id="p-class" class="page">
+      <div class="breadcrumb">
+        <button class="back-btn" id="back-to-env">← 戻る</button>
+        <span class="sep">/</span><strong id="bc-fmt2"></strong>
+        <span class="sep">/</span><strong id="bc-env"></strong>
+      </div>
+      <div class="section-title">クラスを選択</div>
+      <div class="section-sub">使用したクラスを選んでください</div>
+      <div class="card-grid" id="class-list"></div>
+    </div>
+
+    <!-- デッキ選択 -->
+    <div id="p-deck" class="page">
+      <div class="breadcrumb">
+        <button class="back-btn" id="back-to-class">← 戻る</button>
+        <span class="sep">/</span><strong id="bc-fmt3"></strong>
+        <span class="sep">/</span><strong id="bc-env2"></strong>
+        <span class="sep">/</span><strong id="bc-class"></strong>
+      </div>
+      <div class="section-title">デッキを選択</div>
+      <div class="section-sub">使用するデッキを選んでください</div>
+      <div class="card-grid" id="deck-list"></div>
+    </div>
+
+    <!-- 対戦記録 -->
+    <div id="p-record" class="page">
+      <div class="breadcrumb">
+        <button class="back-btn" id="back-to-deck">← 戻る</button>
+        <span class="sep">/</span><strong id="bc-fmt4"></strong>
+        <span class="sep">/</span><strong id="bc-env3"></strong>
+        <span class="sep">/</span><strong id="bc-class2"></strong>
+        <span class="sep">/</span><strong id="bc-deck"></strong>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat">
+          <div class="stat-label">総対戦</div>
+          <div class="stat-val" id="s-total">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">勝ち</div>
+          <div class="stat-val win" id="s-win">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">負け</div>
+          <div class="stat-val lose" id="s-lose">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">勝率</div>
+          <div class="stat-val" id="s-rate">-%</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">現在連勝</div>
+          <div class="stat-val win" id="s-streak">0</div>
+        </div>
+      </div>
+
+      <!-- 入力UI -->
+      <div
+        style="background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;padding:1rem;margin-bottom:1rem;">
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:500;">相手クラス</div>
+        <div id="opp-class-btns" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;"></div>
+        <div id="opp-deck-row" style="display:none;">
+          <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:500;">相手デッキ</div>
+          <div id="opp-deck-btns" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;"></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div style="font-size:11px;color:#888;font-weight:500;white-space:nowrap;">結果</div>
+          <div id="result-btns" style="display:flex;gap:6px;"></div>
+          <button id="add-btn"
+            style="margin-left:auto;padding:6px 20px;border-radius:99px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:#1a1a1a;color:#fff;">+
+            追加</button>
+        </div>
+      </div>
+
+      <!-- ツールバー -->
+      <div class="rec-toolbar">
+        <div class="rec-toolbar-left">
+          <button class="btn-edit" id="btn-edit">選択削除</button>
+          <span id="sel-count-label" style="display:none;" class="sel-count"></span>
+          <button class="btn-sel-all" id="btn-sel-all" style="display:none;"></button>
+        </div>
+        <button class="btn-del-all" id="btn-del-all" style="display:none;">削除</button>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:28px">#</th>
+              <th style="width:76px">日時</th>
+              <th style="width:88px">相手クラス</th>
+              <th>相手デッキ</th>
+              <th style="width:48px">結果</th>
+              <th style="width:32px"></th>
+            </tr>
+          </thead>
+          <tbody id="rec-tbl"></tbody>
+        </table>
+        <div class="empty" id="rec-empty">まだ記録がありません</div>
+      </div>
+
+      <!-- 対戦相手別勝率 -->
+      <div id="vs-section" style="display:none;">
+        <div class="sub-section-title">対戦相手別勝率</div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>相手デッキ</th>
+                <th style="width:42px;text-align:center;">対戦</th>
+                <th style="width:42px;text-align:center;">勝ち</th>
+                <th style="width:42px;text-align:center;">負け</th>
+                <th style="width:120px;">勝率</th>
+              </tr>
+            </thead>
+            <tbody id="vs-tbl"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 対戦デッキ分布 -->
+      <div id="dist-section" style="display:none;">
+        <div class="sub-section-title">対戦デッキ分布</div>
+        <div class="pie-container">
+          <div class="pie-wrap"><canvas id="pie-canvas" width="160" height="160"></canvas></div>
+          <div class="legend" id="pie-legend"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- フィードバック＆ダークモード -->
+  <div style="position:fixed;bottom:20px;left:16px;z-index:9999;font-size:11px;color:#aaa;">ver1.00</div>
+  <div
+    style="position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;gap:8px;align-items:center;pointer-events:auto;">
+    <button id="dark-btn"
+      style="background:#1a1a1a;color:#fff;border:none;border-radius:99px;font-size:12px;font-weight:500;padding:10px 14px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.18);">🌙</button>
+    <a href="https://forms.gle/3ccFQt4qu3hQRFVS8" target="_blank"
+      style="display:flex;align-items:center;gap:6px;background:#1a1a1a;color:#fff;text-decoration:none;padding:10px 16px;border-radius:99px;font-size:12px;font-weight:500;box-shadow:0 2px 12px rgba(0,0,0,0.18);">
+      💬 フィードバック
+    </a>
+  </div>
+
+  <script>
+    // ===================== データ定義 =====================
+    const CLASSES = [
+      { name: 'エルフ', color: '#4FA86A' },
+      { name: 'ロイヤル', color: '#9AA11A' },
+      { name: 'ウィッチ', color: '#6B74C9' },
+      { name: 'ドラゴン', color: '#C96A1A' },
+      { name: 'ナイトメア', color: '#C92A4A' },
+      { name: 'ビショップ', color: '#C9C2A3' },
+      { name: 'ネメシス', color: '#57C7D4' },
+    ];
+
+    const ROTATION_DECKS = {
+      'エルフ': ['進化E', 'コンボE'],
+      'ロイヤル': ['連携進化R', 'エンハンスR', '財宝R', 'アグロR'],
+      'ウィッチ': ['秘術W', '魔手W', 'OTK魔手W', 'リンクルW', 'スペルW'],
+      'ドラゴン': ['ランプD', 'ほーちゃんD', '進化D', 'ディスカードD'],
+      'ナイトメア': ['ミッドレンジNi', '進化Ni', 'ミルティオNi', 'アグロNi', 'シャクドウNi', 'モードNi'],
+      'ビショップ': ['アミュレットB', '守護B', 'クレストB', 'クキシロB'],
+      'ネメシス': ['破壊Nm', '進化Nm', 'アーティファクトNm'],
+    };
+    const UNLIMITED_DECKS = {
+      'エルフ': ['リノE'],
+      'ロイヤル': ['アグロR', 'エンハンスR', '連携R', '財宝R'],
+      'ウィッチ': ['秘術W', '魔手W', 'スペルW'],
+      'ドラゴン': ['ディスカードD', 'ランプD', '進化D'],
+      'ナイトメア': ['ミルティオNi', 'ミッドレンジNi', 'アグロNi'],
+      'ビショップ': ['守護B', 'クキシロB'],
+      'ネメシス': ['破壊Nm', 'アーティファクトNm', '人形Nm'],
+    };
+    function DECKS(cls) { return (cur.fmt === 'rotation' ? ROTATION_DECKS : UNLIMITED_DECKS)[cls] || []; }
+
+    const UNLIMITED_ENVS = [
+      '伝説の幕開け環境', 'インフィニティエボルブ環境',
+      '絶傑の継承者前半環境', '絶傑の継承者後半環境',
+      '蒼空の六竜前半環境', '蒼空の六竜後半環境',
+      '花酔遊戯前半環境', '花酔遊戯後半環境',
+      'アポカリプスパクト前半環境', 'アポカリプスパクト後半環境',
+      '神殺し・アナテマ前半環境', '神殺し・アナテマ後半環境',
+    ];
+    const ROTATION_ENVS = [
+      '神殺し・アナテマ前半環境', '神殺し・アナテマ後半環境',
+    ];
+    const CURRENT_ENV = '神殺し・アナテマ後半環境';
+    const FMT_LABEL = { rotation: 'ローテーション', unlimited: 'アンリミテッド' };
+
+    const PIE_COLORS = [
+      '#4E79A7', '#F28E2B', '#E15759', '#76B7B2', '#59A14F',
+      '#EDC948', '#B07AA1', '#FF9DA7', '#9C755F', '#BAB0AC',
+      '#499894', '#86BCB6', '#D37295', '#FABFD2', '#B6992D',
+      '#F1CE63', '#A0CBE8', '#FFBE7D', '#8CD17D', '#D4A6C8',
+    ];
+
+    // ===================== 状態 =====================
+    // 旧キーからのデータ移行
+    (function () {
+      const old = localStorage.getItem('sv_html_state4');
+      if (old && !localStorage.getItem('sv_v5')) {
+        localStorage.setItem('sv_v5', old);
+      }
+    })();
+    let state = JSON.parse(localStorage.getItem('sv_v5') || 'null') || { records: [] };
+    let cur = { fmt: null, env: null, cls: null, deck: null };
+    let editMode = false;
+    let selectedIndices = new Set();
+    let selOppCls = null, selOppDeck = null, selResult = 'win';
+
+    function save() { localStorage.setItem('sv_v5', JSON.stringify(state)); }
+
+    // ===================== ページ遷移 =====================
+    function goPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function setBreadcrumb(ids, text) {
+      ids.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = text; });
+    }
+
+    // ===================== フォーマット選択 =====================
+    document.getElementById('card-rotation').onclick = () => selectFormat('rotation');
+    document.getElementById('card-unlimited').onclick = () => selectFormat('unlimited');
+    document.getElementById('back-to-format').onclick = () => goPage('p-format');
+    document.getElementById('back-to-env').onclick = () => { renderEnvs(); goPage('p-env'); };
+    document.getElementById('back-to-class').onclick = () => { renderClasses(); goPage('p-class'); };
+    document.getElementById('back-to-deck').onclick = () => { renderDecks(); goPage('p-deck'); };
+    document.getElementById('add-btn').onclick = addRecord;
+    document.getElementById('btn-edit').onclick = toggleEditMode;
+    document.getElementById('btn-del-all').onclick = deleteSelected;
+    document.getElementById('btn-sel-all').onclick = toggleSelectAll;
+    document.getElementById('dark-btn').onclick = toggleDark;
+
+    function selectFormat(f) {
+      cur.fmt = f;
+      setBreadcrumb(['bc-fmt', 'bc-fmt2', 'bc-fmt3', 'bc-fmt4'], FMT_LABEL[f]);
+      renderEnvs();
+      goPage('p-env');
+    }
+
+    // ===================== 環境 =====================
+    function renderEnvs() {
+      const el = document.getElementById('env-list');
+      el.innerHTML = '';
+      const envs = cur.fmt === 'rotation' ? ROTATION_ENVS : UNLIMITED_ENVS;
+      envs.forEach(function (env) {
+        const recs = state.records.filter(r => r.fmt === cur.fmt && r.env === env);
+        const wins = recs.filter(r => r.result === 'win').length;
+        const c = document.createElement('div');
+        c.className = 'sel-card';
+        if (env === CURRENT_ENV) {
+          const badge = document.createElement('div');
+          badge.className = 'cur-env-badge';
+          badge.textContent = '現在の環境';
+          c.appendChild(badge);
+        }
+        const name = document.createElement('div');
+        name.className = 'card-name';
+        name.textContent = env;
+        c.appendChild(name);
+        const sub = document.createElement('div');
+        sub.className = 'card-sub';
+        sub.textContent = recs.length + '戦 / ' + (recs.length ? Math.round(wins / recs.length * 100) + '%勝率' : '未記録');
+        c.appendChild(sub);
+        c.addEventListener('click', (function (e) {
+          return function () {
+            cur.env = e;
+            setBreadcrumb(['bc-env', 'bc-env2', 'bc-env3'], e);
+            renderClasses();
+            goPage('p-class');
+          };
+        })(env));
+        el.appendChild(c);
+      });
+    }
+
+    // ===================== クラス =====================
+    function renderClasses() {
+      const el = document.getElementById('class-list');
+      el.innerHTML = '';
+      CLASSES.forEach(function (cls) {
+        const recs = state.records.filter(r => r.fmt === cur.fmt && r.env === cur.env && r.cls === cls.name);
+        const wins = recs.filter(r => r.result === 'win').length;
+        const dc = (DECKS(cls.name) || []).length;
+        const c = document.createElement('div');
+        c.className = 'sel-card';
+        const header = document.createElement('div');
+        header.style.cssText = 'display:flex;align-items:center;margin-bottom:5px;';
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        dot.style.background = cls.color;
+        const cname = document.createElement('span');
+        cname.className = 'card-name';
+        cname.textContent = cls.name;
+        header.appendChild(dot);
+        header.appendChild(cname);
+        c.appendChild(header);
+        const sub = document.createElement('div');
+        sub.className = 'card-sub';
+        sub.textContent = dc + 'デッキ | ' + recs.length + '戦 ' + (recs.length ? Math.round(wins / recs.length * 100) + '%' : '');
+        c.appendChild(sub);
+        c.addEventListener('click', (function (name) {
+          return function () {
+            cur.cls = name;
+            setBreadcrumb(['bc-class', 'bc-class2'], name);
+            renderDecks();
+            goPage('p-deck');
+          };
+        })(cls.name));
+        el.appendChild(c);
+      });
+    }
+
+    // ===================== デッキ =====================
+    function renderDecks() {
+      const el = document.getElementById('deck-list');
+      el.innerHTML = '';
+      (DECKS(cur.cls) || []).forEach(function (deck) {
+        const recs = state.records.filter(r => r.fmt === cur.fmt && r.env === cur.env && r.cls === cur.cls && r.deck === deck);
+        const wins = recs.filter(r => r.result === 'win').length;
+        const c = document.createElement('div');
+        c.className = 'sel-card';
+        const name = document.createElement('div');
+        name.className = 'card-name';
+        name.textContent = deck;
+        c.appendChild(name);
+        const sub = document.createElement('div');
+        sub.className = 'card-sub';
+        sub.textContent = recs.length + '戦 / ' + (recs.length ? Math.round(wins / recs.length * 100) + '%勝率' : '未記録');
+        c.appendChild(sub);
+        c.addEventListener('click', (function (d) {
+          return function () {
+            cur.deck = d;
+            document.getElementById('bc-deck').textContent = d;
+            initRecordInputs();
+            renderRecords();
+            goPage('p-record');
+          };
+        })(deck));
+        el.appendChild(c);
+      });
+    }
+
+    // ===================== 入力UI =====================
+    function initRecordInputs() {
+      selOppCls = null; selOppDeck = null; selResult = 'win';
+      renderOppClassBtns();
+      document.getElementById('opp-deck-row').style.display = 'none';
+      document.getElementById('opp-deck-btns').innerHTML = '';
+      renderResultBtns();
+    }
+
+    function renderOppClassBtns() {
+      const el = document.getElementById('opp-class-btns');
+      el.innerHTML = '';
+      CLASSES.forEach(function (cls) {
+        const btn = document.createElement('button');
+        btn.textContent = cls.name;
+        const active = selOppCls === cls.name;
+        btn.style.cssText = 'padding:5px 12px;border-radius:99px;font-size:12px;cursor:pointer;border:0.5px solid;transition:all .1s;background:' + (active ? cls.color : '#fff') + ';color:' + (active ? '#fff' : '#555') + ';border-color:' + (active ? cls.color : 'rgba(0,0,0,0.18)') + ';';
+        btn.addEventListener('click', (function (name, color) {
+          return function () {
+            selOppCls = name; selOppDeck = null;
+            renderOppClassBtns();
+            renderOppDeckBtns(name);
+          };
+        })(cls.name, cls.color));
+        el.appendChild(btn);
+      });
+    }
+
+    function renderOppDeckBtns(cls) {
+      const row = document.getElementById('opp-deck-row');
+      const el = document.getElementById('opp-deck-btns');
+      el.innerHTML = '';
+      const decks = DECKS(cls) || [];
+      if (!decks.length) { row.style.display = 'none'; return; }
+      row.style.display = 'block';
+      decks.forEach(function (deck) {
+        const btn = document.createElement('button');
+        btn.textContent = deck;
+        const active = selOppDeck === deck;
+        btn.style.cssText = 'padding:5px 12px;border-radius:99px;font-size:12px;cursor:pointer;border:0.5px solid;transition:all .1s;background:' + (active ? '#1a1a1a' : '#fff') + ';color:' + (active ? '#fff' : '#555') + ';border-color:' + (active ? '#1a1a1a' : 'rgba(0,0,0,0.18)') + ';';
+        btn.addEventListener('click', (function (d) { return function () { selOppDeck = d; renderOppDeckBtns(cls); }; })(deck));
+        el.appendChild(btn);
+      });
+    }
+
+    function renderResultBtns() {
+      const el = document.getElementById('result-btns');
+      el.innerHTML = '';
+      [{ val: 'win', label: '勝ち', color: '#1D9E75' }, { val: 'lose', label: '負け', color: '#E24B4A' }].forEach(function (item) {
+        const btn = document.createElement('button');
+        btn.textContent = item.label;
+        const active = selResult === item.val;
+        btn.style.cssText = 'padding:5px 16px;border-radius:99px;font-size:12px;cursor:pointer;border:0.5px solid;transition:all .1s;background:' + (active ? item.color : '#fff') + ';color:' + (active ? '#fff' : '#555') + ';border-color:' + (active ? item.color : 'rgba(0,0,0,0.18)') + ';';
+        btn.addEventListener('click', (function (v) { return function () { selResult = v; renderResultBtns(); }; })(item.val));
+        el.appendChild(btn);
+      });
+    }
+
+    // ===================== 記録追加・削除 =====================
+    function addRecord() {
+      if (!selOppCls) { alert('相手クラスを選択してください'); return; }
+      state.records.push({
+        fmt: cur.fmt, env: cur.env, cls: cur.cls, deck: cur.deck,
+        ts: Date.now(), oppCls: selOppCls, oppDeck: selOppDeck || '', result: selResult
+      });
+      save();
+      selOppCls = null; selOppDeck = null; selResult = 'win';
+      renderOppClassBtns();
+      document.getElementById('opp-deck-row').style.display = 'none';
+      document.getElementById('opp-deck-btns').innerHTML = '';
+      renderResultBtns();
+      renderRecords();
+    }
+
+    function delRecord(i) {
+      if (!confirm('この記録を削除しますか？')) return;
+      state.records.splice(i, 1);
+      save();
+      renderRecords();
+    }
+
+    // ===================== 選択削除 =====================
+    function toggleEditMode() {
+      editMode = !editMode;
+      selectedIndices.clear();
+      const btn = document.getElementById('btn-edit');
+      btn.textContent = editMode ? 'キャンセル' : '選択削除';
+      btn.classList.toggle('active', editMode);
+      document.getElementById('btn-del-all').style.display = editMode ? '' : 'none';
+      document.getElementById('sel-count-label').style.display = editMode ? '' : 'none';
+      document.getElementById('btn-sel-all').style.display = editMode ? '' : 'none';
+      renderRecords();
+    }
+
+    function updateSelectionUI(totalCount) {
+      const n = selectedIndices.size;
+      document.getElementById('sel-count-label').textContent = n > 0 ? n + '件選択中' : '';
+      document.getElementById('btn-del-all').disabled = n === 0;
+      document.getElementById('btn-sel-all').textContent = n === totalCount ? 'すべて解除' : 'すべて選択';
+    }
+
+    function toggleSelectAll() {
+      const recs = state.records.map((r, i) => ({ r, i })).filter(({ r }) => r.fmt === cur.fmt && r.env === cur.env && r.cls === cur.cls && r.deck === cur.deck);
+      const allSelected = recs.every(({ i }) => selectedIndices.has(i));
+      if (allSelected) { recs.forEach(({ i }) => selectedIndices.delete(i)); }
+      else { recs.forEach(({ i }) => selectedIndices.add(i)); }
+      renderRecords();
+    }
+
+    function toggleRow(globalIdx, totalCount) {
+      if (selectedIndices.has(globalIdx)) selectedIndices.delete(globalIdx);
+      else selectedIndices.add(globalIdx);
+      const cb = document.querySelector('input[data-idx="' + globalIdx + '"]');
+      if (cb) {
+        cb.checked = selectedIndices.has(globalIdx);
+        cb.closest('tr').classList.toggle('selected', selectedIndices.has(globalIdx));
+      }
+      updateSelectionUI(totalCount);
+    }
+
+    function deleteSelected() {
+      if (selectedIndices.size === 0) return;
+      if (!confirm(selectedIndices.size + '件の記録を削除しますか？')) return;
+      state.records = state.records.filter((_, i) => !selectedIndices.has(i));
+      selectedIndices.clear();
+      save();
+      renderRecords();
+    }
+
+    // ===================== 記録一覧描画 =====================
+    function fmtTime(ts) {
+      const d = new Date(ts);
+      return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    }
+
+    function renderRecords() {
+      const recs = state.records.map((r, i) => ({ r, i })).filter(({ r }) => r.fmt === cur.fmt && r.env === cur.env && r.cls === cur.cls && r.deck === cur.deck);
+      const tbl = document.getElementById('rec-tbl');
+      const empty = document.getElementById('rec-empty');
+      tbl.innerHTML = '';
+      empty.style.display = recs.length ? 'none' : 'block';
+      const resMap = { win: '勝ち', lose: '負け' };
+      const totalCount = recs.length;
+
+      var reversed = recs.slice().reverse();
+      reversed.forEach(function (item, ri) {
+        var r = item.r, i = item.i;
+        var idx = recs.length - ri;
+        var tr = document.createElement('tr');
+        if (selectedIndices.has(i)) tr.classList.add('selected');
+        if (editMode) {
+          tr.style.cursor = 'pointer';
+          tr.onclick = function () { toggleRow(i, totalCount); };
+          var td0 = document.createElement('td');
+          td0.style.cssText = 'width:28px;text-align:center';
+          var cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.setAttribute('data-idx', i);
+          cb.checked = selectedIndices.has(i);
+          cb.onclick = function (e) { e.stopPropagation(); toggleRow(i, totalCount); };
+          td0.appendChild(cb);
+          tr.appendChild(td0);
+        } else {
+          var td0 = document.createElement('td');
+          td0.style.cssText = 'color:#aaa;font-size:11px';
+          td0.textContent = idx;
+          tr.appendChild(td0);
+        }
+        var td1 = document.createElement('td'); td1.style.cssText = 'color:#aaa;font-size:11px'; td1.textContent = fmtTime(r.ts); tr.appendChild(td1);
+        var td3 = document.createElement('td'); td3.textContent = r.oppCls || '-'; tr.appendChild(td3);
+        var td4 = document.createElement('td'); td4.textContent = r.oppDeck || '-'; tr.appendChild(td4);
+        var td5 = document.createElement('td');
+        var badge = document.createElement('span');
+        badge.className = 'badge ' + r.result;
+        badge.textContent = resMap[r.result];
+        td5.appendChild(badge);
+        tr.appendChild(td5);
+        var td6 = document.createElement('td');
+        if (!editMode) {
+          var delbtn = document.createElement('button');
+          delbtn.className = 'del-btn';
+          delbtn.textContent = '✕';
+          delbtn.addEventListener('click', (function (idx) { return function () { delRecord(idx); }; })(i));
+          td6.appendChild(delbtn);
+        }
+        tr.appendChild(td6);
+        tbl.appendChild(tr);
+      });
+
+      // 統計
+      var allRecs = recs.map(function (x) { return x.r; });
+      var total = allRecs.length;
+      var wins = allRecs.filter(function (r) { return r.result === 'win'; }).length;
+      var loses = allRecs.filter(function (r) { return r.result === 'lose'; }).length;
+      document.getElementById('s-total').textContent = total;
+      document.getElementById('s-win').textContent = wins;
+      document.getElementById('s-lose').textContent = loses;
+      document.getElementById('s-rate').textContent = total ? Math.round(wins / total * 100) + '%' : '-%';
+
+      var streak = 0;
+      for (var k = allRecs.length - 1; k >= 0; k--) {
+        if (allRecs[k].result === 'win') streak++;
+        else break;
+      }
+      document.getElementById('s-streak').textContent = streak;
+
+      if (editMode) updateSelectionUI(totalCount);
+      renderVsStats(allRecs);
+      renderPieChart(allRecs);
+    }
+
+    // ===================== 対戦相手別勝率 =====================
+    function buildDeckMap(recs) {
+      var map = {};
+      recs.forEach(function (r) {
+        var key = r.oppDeck || (r.oppCls ? r.oppCls + '（デッキ不明）' : '-');
+        if (!map[key]) map[key] = { label: key, win: 0, lose: 0 };
+        if (r.result === 'win') map[key].win++; else map[key].lose++;
+      });
+      return Object.values(map).sort(function (a, b) { return (b.win + b.lose) - (a.win + a.lose); });
+    }
+
+    function renderVsStats(recs) {
+      var vsSection = document.getElementById('vs-section');
+      var vsTbl = document.getElementById('vs-tbl');
+      vsTbl.innerHTML = '';
+      var entries = buildDeckMap(recs);
+      if (!entries.length) { vsSection.style.display = 'none'; return; }
+      vsSection.style.display = 'block';
+      entries.forEach(function (e) {
+        var total = e.win + e.lose;
+        var rate = Math.round(e.win / total * 100);
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td style="font-weight:500">' + e.label + '</td><td style="text-align:center">' + total + '</td><td style="text-align:center;color:#1D9E75">' + e.win + '</td><td style="text-align:center;color:#E24B4A">' + e.lose + '</td><td><div style="display:flex;align-items:center;gap:6px;"><div class="winbar-wrap" style="flex:1"><div class="winbar" style="width:' + rate + '%"></div></div><span style="font-size:12px;font-weight:500;min-width:34px;text-align:right">' + rate + '%</span></div></td>';
+        vsTbl.appendChild(tr);
+      });
+    }
+
+    // ===================== 円グラフ =====================
+    function renderPieChart(recs) {
+      var distSection = document.getElementById('dist-section');
+      var entries = buildDeckMap(recs);
+      if (!entries.length) { distSection.style.display = 'none'; return; }
+      distSection.style.display = 'block';
+      var total = entries.reduce(function (s, e) { return s + e.win + e.lose; }, 0);
+      var canvas = document.getElementById('pie-canvas');
+      var ctx = canvas.getContext('2d');
+      var cx = 80, cy = 80, r = 72, inner = 36;
+      ctx.clearRect(0, 0, 160, 160);
+      var angle = -Math.PI / 2;
+      entries.forEach(function (e, i) {
+        var count = e.win + e.lose;
+        var slice = (count / total) * Math.PI * 2;
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, angle, angle + slice); ctx.closePath();
+        ctx.fillStyle = PIE_COLORS[i % PIE_COLORS.length]; ctx.fill();
+        angle += slice;
+      });
+      ctx.beginPath(); ctx.arc(cx, cy, inner, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+      ctx.fillStyle = '#888'; ctx.font = '11px -apple-system,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('総対戦', cx, cy - 8);
+      ctx.fillStyle = '#1a1a1a'; ctx.font = 'bold 16px -apple-system,sans-serif';
+      ctx.fillText(total, cx, cy + 9);
+      var legend = document.getElementById('pie-legend');
+      legend.innerHTML = '';
+      entries.forEach(function (e, i) {
+        var count = e.win + e.lose;
+        var pct = Math.round(count / total * 100);
+        var item = document.createElement('div'); item.className = 'legend-item';
+        item.innerHTML = '<span class="legend-dot" style="background:' + PIE_COLORS[i % PIE_COLORS.length] + '"></span><span class="legend-label">' + e.label + '</span><span class="legend-pct">' + pct + '%</span><span class="legend-count">(' + count + ')</span>';
+        legend.appendChild(item);
+      });
+    }
+
+    // ===================== ダークモード =====================
+    function toggleDark() {
+      var dark = document.body.classList.toggle('dark');
+      localStorage.setItem('sv_dark', dark ? '1' : '0');
+      document.getElementById('dark-btn').textContent = dark ? '☀️' : '🌙';
+    }
+    if (localStorage.getItem('sv_dark') === '1') {
+      document.body.classList.add('dark');
+      window.addEventListener('DOMContentLoaded', function () {
+        var btn = document.getElementById('dark-btn');
+        if (btn) btn.textContent = '☀️';
+      });
+    }
+
+    // ===================== Service Worker =====================
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+  </script>
+</body>
+
+</html>
